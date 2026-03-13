@@ -66,6 +66,10 @@ function AIAssistant({ onDetect }) {
                 onDetect(response.data.ingredients);
                 setDetectedCount(response.data.ingredients.length);
                 setScanned(true);
+                // Clear the image after a short delay so user sees the success state
+                setTimeout(() => {
+                    clearImage();
+                }, 2000);
             } else {
                 setError("No ingredients could be detected. Try a clearer picture.");
             }

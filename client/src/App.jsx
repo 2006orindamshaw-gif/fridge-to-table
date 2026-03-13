@@ -304,7 +304,10 @@ function App() {
 
           {view === 'search' && (
             <>
-              <AIAssistant onDetect={(detected) => setIngredients([...new Set([...ingredients, ...detected])])} />
+              <AIAssistant onDetect={(detected) => {
+                const normalized = detected.map(i => i.toLowerCase());
+                setIngredients([...new Set([...ingredients, ...normalized])]);
+              }} />
               <IngredientInput
                 ingredients={ingredients}
                 setIngredients={setIngredients}
