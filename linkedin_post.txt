@@ -1,0 +1,20 @@
+# Project Presentation: Fridge to Table – Intelligent Culinary Management System
+
+I am pleased to share my latest technical project, **Fridge to Table**, a sophisticated full-stack application designed to optimize household food resource management through advanced computer vision and data-driven insights.
+
+### 🔬 Technical Overview
+*   **Computer Vision Integration**: Leveraged the **Google Gemini 2.5 Flash API** to implement high-precision visual recognition, enabling automated inventory extraction from photographic input.
+*   **Full-Stack Architecture**: Developed a scalable environment utilizing **React.js (Vite)** for the responsive frontend and **Node.js/Express** for the backend API services.
+*   **Database Management**: Implemented persistent data storage using **MongoDB** to manage user pantries, favorites, and shopping lists.
+*   **Algorithm-Driven Discovery**: Integrated the **Spoonacular API** to facilitate complex, ingredient-based recipe mapping with granular support for diverse dietary requirements and health constraints.
+
+### 🎯 Objective
+The primary objective of this project is to mitigate food waste and enhance domestic efficiency. By providing users with immediate culinary applications for their current inventory, the system bridges the gap between raw ingredients and optimized meal preparation.
+
+### 🛠️ Core Tech Stack
+*   **Frontend**: React, Material UI, Axios, Vite
+*   **Backend**: Node.js, Express, RESTful APIs
+*   **AI Engine**: Generative AI (Gemini Vision)
+*   **Database**: MongoDB Atlas
+
+#FullStackDevelopment #ComputerVision #GenerativeAI #SoftwareEngineering #MongoDB #ReactJS #SustainableTech #Innovation

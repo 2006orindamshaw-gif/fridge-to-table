@@ -57,4 +57,50 @@ router.post('/scan', upload.single('image'), async (req, res) => {
     }
 });
 
+// @route   POST /api/vision/chef
+// @desc    Generate a custom recipe based on ingredients
+router.post('/chef', async (req, res) => {
+    try {
+        if (!process.env.GEMINI_API_KEY) {
+            return res.status(500).json({ msg: 'Gemini API key is not configured.' });
+        }
+
+        const { ingredients } = req.body;
+        if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
+            return res.status(400).json({ msg: 'Please provide an array of ingredients.' });
+        }
+
+        const prompt = `You are a creative, expert chef. Create a delicious, easy-to-follow recipe using primarily these ingredients: ${ingredients.join(', ')}. You can assume the user has basic pantry staples like salt, pepper, oil, and water.
+        
+        Format the response in JSON exactly following this structure:
+        {
+          "title": "Creative Recipe Name",
+          "readyInMinutes": 30,
+          "servings": 2,
+          "ingredients": ["1 cup ingredient1", "2 tbsp ingredient2"],
+          "instructions": [
+             "Step 1...",
+             "Step 2..."
+          ]
+        }`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: [prompt],
+            config: {
+                responseMimeType: "application/json"
+            }
+        });
+
+        const text = response.text;
+        const recipeData = JSON.parse(text);
+
+        res.json(recipeData);
+
+    } catch (err) {
+        console.error('Error generating AI recipe:', err);
+        res.status(500).json({ msg: 'Server Error during recipe generation', details: err.message });
+    }
+});
+
 module.exports = router;

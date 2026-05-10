@@ -10,22 +10,23 @@ const BASE_URL = 'https://api.spoonacular.com/recipes';
 // @desc    Get recipes based on a comma separated list of ingredients
 router.get('/findByIngredients', async (req, res) => {
     try {
-        const { ingredients, diet, number = 10 } = req.query;
-        console.log(`Incoming request for ingredients: ${ingredients}, diet: ${diet}`);
+        const { ingredients, diet, cuisine, number = 10 } = req.query;
+        console.log(`Incoming request for ingredients: ${ingredients}, diet: ${diet}, cuisine: ${cuisine}`);
 
-        if (!ingredients && !diet) {
-            return res.status(400).json({ msg: 'Please provide ingredients or diet' });
+        if (!ingredients && !diet && !cuisine) {
+            return res.status(400).json({ msg: 'Please provide ingredients, diet, or cuisine' });
         }
 
         console.log('Fetching from Spoonacular...');
 
         let response;
-        if (diet) {
-            // Use complexSearch for dietary filters
+        if (diet || cuisine) {
+            // Use complexSearch for dietary or cuisine filters
             response = await axios.get(`${BASE_URL}/complexSearch`, {
                 params: {
                     includeIngredients: ingredients,
                     diet: diet,
+                    cuisine: cuisine,
                     number,
                     apiKey: SPOONACULAR_API_KEY,
                     fillIngredients: true,

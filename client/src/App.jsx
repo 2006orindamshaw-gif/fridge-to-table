@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Typography, Box, CircularProgress, Alert, Chip } from '@mui/material';
+import { Container, Typography, Box, CircularProgress, Alert, Chip, Button } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import IngredientInput from './components/IngredientInput';
@@ -10,6 +10,12 @@ import ShoppingListView from './components/ShoppingListView';
 import PantryView from './components/PantryView';
 import FilterBar from './components/FilterBar';
 import AIAssistant from './components/AIAssistant';
+import AIChefModal from './components/AIChefModal';
+import HealthProfileModal from './components/HealthProfileModal';
+import HealthDashboard from './components/HealthDashboard';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 const theme = createTheme({
   palette: {
@@ -54,6 +60,9 @@ function App() {
   const [shoppingList, setShoppingList] = useState([]);
   const [pantry, setPantry] = useState([]);
   const [selectedDiet, setSelectedDiet] = useState('');
+  const [selectedCuisine, setSelectedCuisine] = useState('');
+  const [aiChefOpen, setAiChefOpen] = useState(false);
+  const [healthProfileOpen, setHealthProfileOpen] = useState(false);
   const [dbStatus, setDbStatus] = useState({ state: 'checking', error: null });
 
   const checkStatus = async () => {
@@ -114,7 +123,7 @@ function App() {
         return;
       }
 
-      if (ingredients.length === 0 && !selectedDiet) {
+      if (ingredients.length === 0 && !selectedDiet && !selectedCuisine) {
         setRecipes([]);
         return;
       }
@@ -126,7 +135,8 @@ function App() {
         const res = await axios.get(`${API_BASE_URL}/recipes/findByIngredients`, {
           params: {
             ingredients: ingredientsString,
-            diet: selectedDiet
+            diet: selectedDiet,
+            cuisine: selectedCuisine
           }
         });
         setRecipes(res.data || []);
@@ -147,7 +157,7 @@ function App() {
     }, 500);
 
     return () => clearTimeout(timerId);
-  }, [ingredients, view, favorites, selectedDiet]);
+  }, [ingredients, view, favorites, selectedDiet, selectedCuisine]);
 
   const handleFavoriteToggle = async (recipe) => {
     const recipeId = recipe.id || recipe.spoonacularId;
@@ -289,14 +299,16 @@ function App() {
                 { label: 'Find Recipes', value: 'search' },
                 { label: `Saved (${favorites.length})`, value: 'favorites' },
                 { label: 'Shopping List', value: 'shopping-list' },
-                { label: 'Pantry', value: 'pantry' }
+                { label: 'Pantry', value: 'pantry' },
+                { label: 'Health Mode 🩺', value: 'health' }
               ].map((tab) => (
                 <Chip
                   key={tab.value}
                   label={tab.label}
                   onClick={() => setView(tab.value)}
-                  color={view === tab.value ? "primary" : "default"}
-                  sx={{ fontWeight: 'bold', px: 2, cursor: 'pointer' }}
+                  color={view === tab.value ? "primary" : tab.value === 'health' ? "success" : "default"}
+                  variant={view === tab.value ? "filled" : "outlined"}
+                  sx={{ fontWeight: 'bold', px: 2, cursor: 'pointer', borderWidth: 2 }}
                 />
               ))}
             </Box>
@@ -312,7 +324,12 @@ function App() {
                 ingredients={ingredients}
                 setIngredients={setIngredients}
               />
-              <FilterBar selectedDiet={selectedDiet} onDietChange={setSelectedDiet} />
+              <FilterBar 
+                selectedDiet={selectedDiet} 
+                onDietChange={setSelectedDiet} 
+                selectedCuisine={selectedCuisine}
+                onCuisineChange={setSelectedCuisine}
+              />
               {pantry.length > 0 && (
                 <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                   <Typography variant="body2" color="text.secondary">Use from Pantry:</Typography>
@@ -348,6 +365,57 @@ function App() {
             />
           )}
 
+          {view === 'health' && (
+            <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h5" fontWeight="bold" color="success.main">
+                        <MonitorHeartIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
+                        Health Mode
+                    </Typography>
+                    <Button 
+                        startIcon={<SettingsIcon />} 
+                        variant="outlined" 
+                        color="success"
+                        onClick={() => setHealthProfileOpen(true)}
+                        sx={{ borderRadius: 6, fontWeight: 'bold' }}
+                    >
+                        Medical Profile
+                    </Button>
+                </Box>
+                <AIAssistant onDetect={(detected) => {
+                  const normalized = detected.map(i => i.toLowerCase());
+                  setIngredients([...new Set([...ingredients, ...normalized])]);
+                }} />
+                <IngredientInput
+                  ingredients={ingredients}
+                  setIngredients={setIngredients}
+                />
+                {pantry.length > 0 && (
+                  <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                    <Typography variant="body2" color="text.secondary">Use from Pantry:</Typography>
+                    {pantry.slice(0, 5).map(item => (
+                      <Chip
+                        key={item._id}
+                        label={item.name}
+                        size="small"
+                        color="success"
+                        variant="outlined"
+                        onClick={() => !ingredients.includes(item.name) && setIngredients([...ingredients, item.name])}
+                        sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'success.light', color: 'white' } }}
+                      />
+                    ))}
+                  </Box>
+                )}
+                {ingredients.length > 0 ? (
+                    <HealthDashboard ingredients={ingredients} />
+                ) : (
+                    <Alert severity="info" sx={{ mt: 4, borderRadius: 2 }}>
+                        Scan your fridge or select ingredients to generate your custom healthy meal!
+                    </Alert>
+                )}
+            </Box>
+          )}
+
           {(view === 'search' || view === 'favorites') && (
             <>
               {error && (
@@ -365,12 +433,31 @@ function App() {
                       <Typography variant="h6">You haven't saved any recipes yet!</Typography>
                     </Box>
                   ) : (
-                    <RecipeList
-                      recipes={recipes}
-                      onFavorite={handleFavoriteToggle}
-                      favorites={favorites}
-                      onRecipeClick={handleRecipeClick}
-                    />
+                    <Box>
+                      <RecipeList
+                        recipes={recipes}
+                        onFavorite={handleFavoriteToggle}
+                        favorites={favorites}
+                        onRecipeClick={handleRecipeClick}
+                      />
+                      {view === 'search' && ingredients.length > 0 && (
+                        <Box sx={{ mt: 6, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, p: 4, borderRadius: 4, background: 'linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%)', color: 'white' }}>
+                          <AutoAwesomeIcon sx={{ fontSize: 40, color: '#00e676' }} />
+                          <Typography variant="h5" fontWeight="bold">Nothing looks good?</Typography>
+                          <Typography variant="body1" sx={{ opacity: 0.8, maxWidth: 400, textAlign: 'center' }}>
+                            Let our AI Chef perfectly craft a unique recipe tailored to exactly what's in your fridge.
+                          </Typography>
+                          <Button 
+                            variant="contained" 
+                            color="success" 
+                            onClick={() => setAiChefOpen(true)}
+                            sx={{ mt: 1, borderRadius: 8, px: 4, py: 1.5, fontWeight: 'bold' }}
+                          >
+                            Create Custom Recipe
+                          </Button>
+                        </Box>
+                      )}
+                    </Box>
                   )}
                 </Box>
               )}
@@ -384,6 +471,17 @@ function App() {
             loading={modalLoading}
             onAddToList={handleAddToList}
             onAddToPantry={handleAddPantryItem}
+          />
+
+          <AIChefModal 
+            open={aiChefOpen} 
+            onClose={() => setAiChefOpen(false)} 
+            ingredients={ingredients} 
+          />
+
+          <HealthProfileModal
+            open={healthProfileOpen}
+            onClose={() => setHealthProfileOpen(false)}
           />
         </Container>
       </Box>

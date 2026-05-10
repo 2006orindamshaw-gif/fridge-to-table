@@ -7,6 +7,8 @@ const recipeRoutes = require('./routes/recipes');
 const pantryRoutes = require('./routes/pantry');
 const shoppingListRoutes = require('./routes/shoppingList');
 const visionRoutes = require('./routes/vision');
+const profileRoutes = require('./routes/profile');
+const healthChefRoutes = require('./routes/healthChef');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -42,6 +44,8 @@ app.use('/api/recipes', recipeRoutes);
 app.use('/api/pantry', pantryRoutes);
 app.use('/api/shopping-list', shoppingListRoutes);
 app.use('/api/vision', visionRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/health-chef', healthChefRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
